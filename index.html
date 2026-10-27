@@ -12,6 +12,32 @@
     
     /* 確保容器在手機與縮小視窗時滿版流體呈現 */
     .container-fluid { width: 100%; max-width: 100%; padding-left: 10px; padding-right: 10px; }
+
+    /* 手機與平板直向：表格改為卡片式，每場比賽一張卡，不需左右拖曳 */
+    @media (max-width: 767.98px) {
+      .table-responsive { overflow-x: visible; box-shadow: none !important; background: transparent !important; }
+      .table thead { display: none; }
+      .table, .table tbody, .table tr, .table td { display: block; width: 100%; }
+      .table tr {
+        background: #fff; border: 1px solid #dee2e6; border-radius: 0.5rem;
+        margin-bottom: 0.75rem; padding: 0.25rem 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      }
+      .table > :not(caption) > * > * { background-color: transparent; box-shadow: none; }
+      .table td {
+        display: flex; justify-content: space-between; align-items: center; gap: 0.75rem;
+        padding: 0.45rem 0; border-bottom: 1px dashed #e9ecef; white-space: normal !important;
+        text-align: right !important;
+      }
+      .table td:last-child { border-bottom: 0; }
+      .table td[data-label]::before {
+        content: attr(data-label); font-weight: bold; color: #198754;
+        text-align: left; white-space: nowrap; flex-shrink: 0;
+      }
+      /* 比分明細內容較長，標題放上方、內容整行顯示 */
+      .table td.score-detail { display: block; text-align: left !important; min-width: 0; }
+      .table td.score-detail::before { display: block; margin-bottom: 0.25rem; }
+      .table td.no-data { display: block; text-align: center !important; }
+    }
   </style>
 </head>
 <body class="py-3">
@@ -109,23 +135,23 @@
       tbody.innerHTML = '';
 
       if (teamLogs.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-3">查無賽事資料</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" class="no-data text-center text-muted py-3">查無賽事資料</td></tr>';
         return;
       }
 
       teamLogs.forEach(log => {
         let tr = document.createElement('tr');
         tr.innerHTML = `
-          <td class="text-nowrap">${formatDate(log.date)}</td>
-          <td class="fw-bold text-nowrap">${log.opponent || '-'}</td>
-          <td class="text-nowrap"><span class="badge ${log.homeAway === '主' ? 'bg-success' : 'bg-secondary'}">${log.homeAway || '-'}</span></td>
-          <td class="score-detail">${log.scoreDetail || '-'}</td>
-          <td class="text-nowrap">${log.q1Spd !== undefined && log.q1Spd !== '' ? log.q1Spd : '-'}</td>
-          <td class="text-nowrap">${log.halfSpd !== undefined && log.halfSpd !== '' ? log.halfSpd : '-'}</td>
-          <td class="text-nowrap">${log.fullSpd !== undefined && log.fullSpd !== '' ? log.fullSpd : '-'}</td>
-          <td class="text-center">${log.q1Res || '-'}</td>
-          <td class="text-center">${log.halfRes || '-'}</td>
-          <td class="text-center">${log.fullRes || '-'}</td>
+          <td class="text-nowrap" data-label="比賽日期">${formatDate(log.date)}</td>
+          <td class="fw-bold text-nowrap" data-label="對手">${log.opponent || '-'}</td>
+          <td class="text-nowrap" data-label="主/客"><span class="badge ${log.homeAway === '主' ? 'bg-success' : 'bg-secondary'}">${log.homeAway || '-'}</span></td>
+          <td class="score-detail" data-label="比分明細">${log.scoreDetail || '-'}</td>
+          <td class="text-nowrap" data-label="Q1讓分盤口">${log.q1Spd !== undefined && log.q1Spd !== '' ? log.q1Spd : '-'}</td>
+          <td class="text-nowrap" data-label="上半讓分盤口">${log.halfSpd !== undefined && log.halfSpd !== '' ? log.halfSpd : '-'}</td>
+          <td class="text-nowrap" data-label="全場讓分盤口">${log.fullSpd !== undefined && log.fullSpd !== '' ? log.fullSpd : '-'}</td>
+          <td class="text-center" data-label="Q1過盤結果">${log.q1Res || '-'}</td>
+          <td class="text-center" data-label="上半過盤結果">${log.halfRes || '-'}</td>
+          <td class="text-center" data-label="全場過盤結果">${log.fullRes || '-'}</td>
         `;
         tbody.appendChild(tr);
       });
