@@ -10,19 +10,17 @@
     .table th { background-color: #198754 !important; color: white; white-space: nowrap; }
     .score-detail { white-space: pre-line; font-size: 0.85rem; color: #333; }
     
-    /* 響應式切換：預設桌機版顯示表格，手機版隱藏表格 */
+    /* 響應式切換：手機版顯示卡片，電腦版顯示表格 */
     @media (max-width: 768px) {
       .desktop-table-view { display: none !important; }
       .mobile-card-view { display: block !important; }
     }
-    /* 預設手機版卡片隱藏，桌機版顯示 */
     .mobile-card-view { display: none; }
   </style>
 </head>
 <body class="py-3">
 
   <div class="container-fluid px-3">
-    <!-- 頂部標題與選單 -->
     <div class="row align-items-center mb-3 g-2">
       <div class="col-12 col-md-6">
         <h2 class="fw-bold mb-0">🏀 NBA 動態看板</h2>
@@ -37,16 +35,13 @@
       </div>
     </div>
 
-    <!-- 載入中 -->
     <div id="loading" class="text-center py-5">
       <div class="spinner-border text-success" role="status"></div>
       <p class="mt-2 text-muted">正在向雲端同步資料...</p>
     </div>
 
-    <!-- 內容容器 -->
     <div id="content" style="display:none;">
-      
-      <!-- 1. 電腦版完整大表格 (桌面螢幕顯示) -->
+      <!-- 電腦版表格 -->
       <div class="desktop-table-view table-responsive shadow-sm rounded bg-white border">
         <table class="table table-striped table-hover align-middle mb-0">
           <thead>
@@ -67,15 +62,14 @@
         </table>
       </div>
 
-      <!-- 2. 手機專用卡片式清單 (手機螢幕自動切換，免左右滑動) -->
+      <!-- 手機版卡片 -->
       <div class="mobile-card-view" id="mobileCardContainer"></div>
-
     </div>
   </div>
 
   <script>
     // 🔴 請確保這裡填入的是你最新部署的 GAS 網址
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzD_odp2rbPbC25cVyneyseMRv401b_3NspupXhhK59qtYhgNtPyyu1f2Q0txWnzGNc/exec";
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzD_odp2rbPbC25cVyneyseMRv401b_3NspupXhhK59qtYhgNtPyyu1f2Q0txWnzGNc/execc";
 
     let globalLogs = [];
 
@@ -129,7 +123,7 @@
       }
 
       teamLogs.forEach(log => {
-        // 1. 渲染電腦版表格行
+        // 電腦版表格行
         let tr = document.createElement('tr');
         tr.innerHTML = `
           <td class="text-nowrap">${formatDate(log.date)}</td>
@@ -145,7 +139,7 @@
         `;
         tbody.appendChild(tr);
 
-        // 2. 渲染手機版卡片 (不需左右滑動，上下直覺檢視)
+        // 手機版卡片
         let card = document.createElement('div');
         card.className = 'card mb-3 shadow-sm border-0';
         card.innerHTML = `
