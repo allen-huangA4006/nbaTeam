@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NBA 動態看板</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background-color: #f8f9fa; font-family: "Microsoft JhengHei", Arial, sans-serif; }
+    .table th { background-color: #198754 !important; color: white; white-space: nowrap; }
+    .score-detail { white-space: pre-line; font-size: 0.85rem; color: #333; min-width: 140px; }
+    
+    /* 確保容器在手機與縮小視窗時滿版流體呈現 */
+    .container-fluid { width: 100%; max-width: 100%; padding-left: 10px; padding-right: 10px; }
+  </style>
+</head>
+<body class="py-3">
+
+  <div class="container-fluid">
+    <!-- 頂部標題與球隊選單 -->
+    <div class="row align-items-center mb-3 g-2">
+      <div class="col-12 col-md-6">
+        <h2 class="fw-bold mb-0">🏀 NBA 動態看板</h2>
+      </div>
+      <div class="col-12 col-md-6 text-md-end">
+        <div class="d-flex align-items-center justify-content-md-end">
+          <label for="teamSelect" class="form-label fw-bold me-2 mb-0 text-nowrap">選擇球隊：</label>
+          <select id="teamSelect" class="form-select w-auto" onchange="onTeamChange()">
+            <option value="">載入球隊中...</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- 載入中 -->
+    <div id="loading" class="text-center py-5">
+      <div class="spinner-border text-success" role="status"></div>
+      <p class="mt-2 text-muted">正在向雲端同步資料...</p>
+    </div>
+
+    <!-- 響應式表格區塊 -->
+    <div id="content" style="display:none;">
+      <div class="table-responsive shadow-sm rounded bg-white">
+        <table class="table table-striped table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th class="text-nowrap">比賽日期</th>
+              <th class="text-nowrap">對手</th>
+              <th class="text-nowrap">主/客</th>
+              <th class="text-nowrap">比分明細</th>
+              <th class="text-nowrap">Q1讓分盤口</th>
+              <th class="text-nowrap">上半讓分盤口</th>
+              <th class="text-nowrap">全場讓分盤口</th>
+              <th class="text-nowrap text-center">Q1過盤結果</th>
+              <th class="text-nowrap text-center">上半過盤結果</th>
+              <th class="text-nowrap text-center">全場過盤結果</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 🔴 請確保這裡填入的是你最新部署的 GAS 網址
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw7FB2uQAbhV4RpbmLsja10w2JBaQf-b9o9VOVVzdIJxzoZULMw1pLNOc8Qybs5wBSZdg/exec";
+
+    let globalLogs = [];
+
+    window.onload = function() {
+      fetch(GAS_API_URL)
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('loading').style.display = 'none';
+          document.getElementById('content').style.display = 'block';
+
+          globalLogs = data.logs;
+          const select = document.getElementById('teamSelect');
+          select.innerHTML = '';
+
+          data.teams.forEach(team => {
+            let opt = document.createElement('option');
+            opt.value = team;
+            opt.textContent = team;
+            select.appendChild(opt);
+          });
+
+          if(data.teams.length > 0) onTeamChange();
+        })
+        .catch(err => {
+          document.getElementById('loading').innerHTML = '<div class="alert alert-danger">載入失敗: ' + err + '</div>';
+        });
+    };
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '-';
+      if (dateStr.includes('T')) {
+        return dateStr.split('T')[0];
+      }
+      return dateStr;
+    }
+
+    function onTeamChange() {
+      const selectedTeam = document.getElementById('teamSelect').value;
+      const teamLogs = globalLogs.filter(item => item.team === selectedTeam);
+      
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+
+      if (teamLogs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-3">查無賽事資料</td></tr>';
+        return;
+      }
+
+      teamLogs.forEach(log => {
+        let tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="text-nowrap">${formatDate(log.date)}</td>
+          <td class="fw-bold text-nowrap">${log.opponent || '-'}</td>
+          <td class="text-nowrap"><span class="badge ${log.homeAway === '主' ? 'bg-success' : 'bg-secondary'}">${log.homeAway || '-'}</span></td>
+          <td class="score-detail">${log.scoreDetail || '-'}</td>
+          <td class="text-nowrap">${log.q1Spd !== undefined && log.q1Spd !== '' ? log.q1Spd : '-'}</td>
+          <td class="text-nowrap">${log.halfSpd !== undefined && log.halfSpd !== '' ? log.halfSpd : '-'}</td>
+          <td class="text-nowrap">${log.fullSpd !== undefined && log.fullSpd !== '' ? log.fullSpd : '-'}</td>
+          <td class="text-center">${log.q1Res || '-'}</td>
+          <td class="text-center">${log.halfRes || '-'}</td>
+          <td class="text-center">${log.fullRes || '-'}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+  </script>
+</body>
+</html>
